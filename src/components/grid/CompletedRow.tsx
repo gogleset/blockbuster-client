@@ -1,6 +1,6 @@
-import { getGuessStatuses } from '../../lib/statuses'
-import { unicodeSplit } from '../../lib/words'
-import { Cell } from './Cell'
+import { getGuessStatuses } from '../../lib/statuses';
+import { unicodeSplit } from '../../lib/words';
+import { Cell } from './Cell';
 
 type Props = {
   solution: string
@@ -9,8 +9,8 @@ type Props = {
 }
 
 export const CompletedRow = ({ solution, guess, isRevealing }: Props) => {
-  const statuses = getGuessStatuses(solution, guess)
-  const splitGuess = unicodeSplit(guess)
+  const statuses = getGuessStatuses(solution, guess);
+  const splitGuess = unicodeSplit(guess);
 
   return (
     <div className="mb-1 flex justify-center">
@@ -25,5 +25,5 @@ export const CompletedRow = ({ solution, guess, isRevealing }: Props) => {
         />
       ))}
     </div>
-  )
-}
+  );
+};

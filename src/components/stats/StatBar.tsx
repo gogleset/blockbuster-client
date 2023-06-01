@@ -2,9 +2,9 @@ import {
   BEST_STREAK_TEXT,
   CURRENT_STREAK_TEXT,
   SUCCESS_RATE_TEXT,
-  TOTAL_TRIES_TEXT,
-} from '../../constants/strings'
-import { GameStats } from '../../lib/localStorage'
+  TOTAL_TRIES_TEXT
+} from '../../constants/strings';
+import { GameStats } from '../../lib/localStorage';
 
 type Props = {
   gameStats: GameStats
@@ -22,8 +22,8 @@ const StatItem = ({
       <div className="text-3xl font-bold">{value}</div>
       <div className="text-xs">{label}</div>
     </div>
-  )
-}
+  );
+};
 
 export const StatBar = ({ gameStats }: Props) => {
   return (
@@ -33,5 +33,5 @@ export const StatBar = ({ gameStats }: Props) => {
       <StatItem label={CURRENT_STREAK_TEXT} value={gameStats.currentStreak} />
       <StatItem label={BEST_STREAK_TEXT} value={gameStats.bestStreak} />
     </div>
-  )
-}
+  );
+};

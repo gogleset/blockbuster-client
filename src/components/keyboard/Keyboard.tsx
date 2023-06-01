@@ -1,9 +1,9 @@
-import { useEffect } from 'react'
+import { useEffect } from 'react';
 
-import { DELETE_TEXT, ENTER_TEXT } from '../../constants/strings'
-import { getStatuses } from '../../lib/statuses'
-import { localeAwareUpperCase } from '../../lib/words'
-import { Key } from './Key'
+import { DELETE_TEXT, ENTER_TEXT } from '../../constants/strings';
+import { getStatuses } from '../../lib/statuses';
+import { localeAwareUpperCase } from '../../lib/words';
+import { Key } from './Key';
 
 type Props = {
   onChar: (value: string) => void
@@ -15,6 +15,7 @@ type Props = {
 }
 
 export const Keyboard = ({
+  // onChar는 이벤트 발생할 때 문자를 감지
   onChar,
   onDelete,
   onEnter,
@@ -22,40 +23,43 @@ export const Keyboard = ({
   guesses,
   isRevealing,
 }: Props) => {
-  const charStatuses = getStatuses(solution, guesses)
+  const charStatuses = getStatuses(solution, guesses);
 
   const onClick = (value: string) => {
     if (value === 'ENTER') {
-      onEnter()
+      onEnter();
     } else if (value === 'DELETE') {
-      onDelete()
+      onDelete();
     } else {
-      onChar(value)
+      onChar(value);
     }
-  }
+  };
 
   useEffect(() => {
+    // 렌더링 후 실행되는 함수, onEnter, onDelete, onChar 감지
     const listener = (e: KeyboardEvent) => {
       if (e.code === 'Enter') {
-        onEnter()
+        onEnter();
       } else if (e.code === 'Backspace') {
-        onDelete()
+        onDelete();
       } else {
-        const key = localeAwareUpperCase(e.key)
+        const key = localeAwareUpperCase(e.key);
         // TODO: check this test if the range works with non-english letters
         if (key.length === 1 && key >= 'A' && key <= 'Z') {
-          onChar(key)
+          onChar(key);
         }
       }
-    }
-    window.addEventListener('keyup', listener)
+    };
+    // 윈도우에서 키업이벤트 감지 시 listener 함수 리턴
+    window.addEventListener('keyup', listener);
     return () => {
-      window.removeEventListener('keyup', listener)
-    }
-  }, [onEnter, onDelete, onChar])
+      window.removeEventListener('keyup', listener);
+    };
+  }, [onEnter, onDelete, onChar]);
 
   return (
     <div>
+      {/* 문자열 키보드 div */}
       <div className="mb-1 flex justify-center">
         {['Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P'].map((key) => (
           <Key
@@ -67,6 +71,7 @@ export const Keyboard = ({
           />
         ))}
       </div>
+      {/* 문자열 키보드 div */}
       <div className="mb-1 flex justify-center">
         {['A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L'].map((key) => (
           <Key
@@ -78,6 +83,7 @@ export const Keyboard = ({
           />
         ))}
       </div>
+      {/* 문자열 키보드 div */}
       <div className="flex justify-center">
         <Key width={65.4} value="ENTER" onClick={onClick}>
           {ENTER_TEXT}
@@ -96,5 +102,5 @@ export const Keyboard = ({
         </Key>
       </div>
     </div>
-  )
-}
+  );
+};

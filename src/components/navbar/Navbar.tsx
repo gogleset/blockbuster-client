@@ -2,11 +2,11 @@ import {
   CalendarIcon,
   ChartBarIcon,
   CogIcon,
-  InformationCircleIcon,
-} from '@heroicons/react/outline'
+  InformationCircleIcon
+} from '@heroicons/react/outline';
 
-import { ENABLE_ARCHIVED_GAMES } from '../../constants/settings'
-import { GAME_TITLE } from '../../constants/strings'
+import { ENABLE_ARCHIVED_GAMES } from '../../constants/settings';
+import { GAME_TITLE } from '../../constants/strings';
 
 type Props = {
   setIsInfoModalOpen: (value: boolean) => void
@@ -50,5 +50,5 @@ export const Navbar = ({
       </div>
       <hr></hr>
     </div>
-  )
-}
+  );
+};

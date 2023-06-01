@@ -1,30 +1,30 @@
-import { DuplicateIcon } from '@heroicons/react/outline'
-import { useState } from 'react'
+import { DuplicateIcon } from '@heroicons/react/outline';
+import { useState } from 'react';
 
-import { copyTextToClipboard } from '../../lib/clipboard'
-import { encrypt } from '../../lib/encryption'
-import { loadGameStateFromLocalStorage } from '../../lib/localStorage'
-import { loadStats } from '../../lib/stats'
-import { MigrationStats } from '../modals/MigrateStatsModal'
+import { copyTextToClipboard } from '../../lib/clipboard';
+import { encrypt } from '../../lib/encryption';
+import { loadGameStateFromLocalStorage } from '../../lib/localStorage';
+import { loadStats } from '../../lib/stats';
+import { MigrationStats } from '../modals/MigrateStatsModal';
 
 export const EmigratePanel = () => {
-  const [isCopyButtonEnabled, setIsCopyButtonEnabled] = useState(true)
-  const [copyButtonText, setCopyButtonText] = useState('Copy')
-  const stats = loadStats()
-  const gameState = loadGameStateFromLocalStorage(true)
+  const [isCopyButtonEnabled, setIsCopyButtonEnabled] = useState(true);
+  const [copyButtonText, setCopyButtonText] = useState('Copy');
+  const stats = loadStats();
+  const gameState = loadGameStateFromLocalStorage(true);
 
   const migrationStats: MigrationStats = {
     statistics: stats,
     gameState: gameState,
-  }
+  };
 
-  const emigrationCode = encrypt(JSON.stringify(migrationStats))
+  const emigrationCode = encrypt(JSON.stringify(migrationStats));
 
   const copyEmigrationCodeToClipboard = () => {
-    copyTextToClipboard(emigrationCode)
-    setCopyButtonText('Copied!')
-    setIsCopyButtonEnabled(false)
-  }
+    copyTextToClipboard(emigrationCode);
+    setCopyButtonText('Copied!');
+    setIsCopyButtonEnabled(false);
+  };
 
   return (
     <div className="text-sm text-gray-500 dark:text-gray-300">
@@ -54,5 +54,5 @@ export const EmigratePanel = () => {
         {copyButtonText}
       </button>
     </div>
-  )
-}
+  );
+};
