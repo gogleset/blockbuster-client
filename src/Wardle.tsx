@@ -14,7 +14,7 @@ import {
   LONG_ALERT_TIME_MS,
   MAX_CHALLENGES,
   REVEAL_TIME_MS,
-  WELCOME_INFO_MODAL_MS
+  WELCOME_INFO_MODAL_MS,
 } from './constants/settings';
 import {
   CORRECT_WORD_MESSAGE,
@@ -24,7 +24,7 @@ import {
   NOT_ENOUGH_LETTERS_MESSAGE,
   SHARE_FAILURE_TEXT,
   WIN_MESSAGES,
-  WORD_NOT_FOUND_MESSAGE
+  WORD_NOT_FOUND_MESSAGE,
 } from './constants/strings';
 import { useAlert } from './context/AlertContext';
 import { isInAppBrowser } from './lib/browser';
@@ -32,7 +32,7 @@ import {
   getStoredIsHighContrastMode,
   loadGameStateFromLocalStorage,
   saveGameStateToLocalStorage,
-  setStoredIsHighContrastMode
+  setStoredIsHighContrastMode,
 } from './lib/localStorage';
 import { addStatsForCompletedGame, loadStats } from './lib/stats';
 import {
@@ -44,16 +44,49 @@ import {
   setGameDate, // solution as sol,
   // solutionGameDate as solGameDate,
   unicodeLength,
-  restart
+  restart,
 } from './lib/words';
 import { getRandomDate } from './util/random';
 import { ClockIcon } from '@heroicons/react/outline';
 import { format } from 'date-fns';
 import { default as GraphemeSplitter } from 'grapheme-splitter';
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Div100vh from 'react-div-100vh';
+import { useAccount } from 'wagmi';
+import Swal from 'sweetalert2';
 
 function App() {
+  const { isConnected } = useAccount();
+  const navigate = useNavigate();
+
+  // 로그인 안할경우 리턴
+  useEffect(() => {
+    if (!isConnected) {
+      return navigate('/');
+    } else {
+      // 로그인 했을 경우 난이도 설정
+      Swal.fire({
+        title: 'choose word length',
+        text: 'choose any! haha',
+        icon: 'question',
+        // showCancelButton: true,
+        showDenyButton: true,
+        confirmButtonColor: '#5a83aa',
+        // cancelButtonColor: '#1c2052',
+        denyButtonColor: '#333edd',
+        confirmButtonText: '5 length',
+        denyButtonText: '6 length',
+        // cancelButtonText: '7 length',
+        allowOutsideClick: false,
+      }).then((result) => {
+        if (result.isConfirmed) {
+          Swal.fire('Deleted!', 'Your file has been deleted.', 'success');
+        }
+      });
+    }
+  }, [isConnected, navigate]);
+
   const [solution, setSolution] = useState('');
   const [solutionGameDate, setSolutionGameDate] = useState(new Date());
   // 문제 1.함수가 재 실행될때만 가능 처음 앱 실행시 실행되는 것 같음
@@ -67,8 +100,8 @@ function App() {
     '(prefers-color-scheme: dark)'
   ).matches;
 
+  // solution 재설정
   useEffect(() => {
-    // solution 재설정
     if (solution == '') {
       const { solution: Solutions } = restart();
       setSolution(Solutions);
@@ -97,8 +130,8 @@ function App() {
     localStorage.getItem('theme')
       ? localStorage.getItem('theme') === 'dark'
       : prefersDarkMode
-        ? true
-        : false
+      ? true
+      : false
   );
   const [isHighContrastMode, setIsHighContrastMode] = useState(
     getStoredIsHighContrastMode()

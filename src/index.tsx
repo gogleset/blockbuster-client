@@ -15,10 +15,10 @@ ReactDOM.render(
   <BrowserRouter>
     <WagmiProvider>
       <AlertProvider>
-        <div className='w-screen flex justify-center h-screen bg-black'>
+        <div className='w-screen flex h-screen bg-black justify-center'>
           <div
-            className='flex flex-col 
-        justify-center bg-slate-400 w-80 h-full relative'
+            className='flex
+        justify-center w-screen bg-slate-400  h-full relative'
           >
             <Header />
             <Routes>
