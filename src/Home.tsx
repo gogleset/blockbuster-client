@@ -1,8 +1,17 @@
 import { useNavigate, Link } from 'react-router-dom';
 import MetamaskConnectButton from './components/buttons/MettamaskConnectButton';
+import { useAccount } from 'wagmi';
+import { useEffect } from 'react';
 
 const Home = () => {
   const navigate = useNavigate();
+  const { isConnected, address } = useAccount();
+
+  useEffect(() => {
+    if (isConnected) {
+      navigate('/waiting');
+    }
+  }, [isConnected, address]);
   return (
     <div className='flex flex-col w-8/12 bg-slate-600 justify-center'>
       {/* home */}

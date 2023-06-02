@@ -10,6 +10,7 @@ import './index.css';
 import WagmiProvider from './wagmi/Provider';
 import ReactDOM from 'react-dom';
 import { BrowserRouter, Route, Routes } from 'react-router-dom';
+import WaitingRoom from '../src/components/layout/WaitingRoom';
 
 ReactDOM.render(
   <BrowserRouter>
@@ -22,9 +23,10 @@ ReactDOM.render(
           >
             <Header />
             <Routes>
+              <Route path='/waiting' element={<WaitingRoom />} />
               <Route path='/playgrounds' element={<App />} />
               <Route path='/' element={<Home />} />
-              <Route path='/Join' element={<Join />} />
+              <Route path='/join' element={<Join />} />
             </Routes>
           </div>
         </div>

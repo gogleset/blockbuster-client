@@ -16,7 +16,7 @@ export default function MetamaskConnectButton() {
       // 성공
       if (data) {
         console.log(data);
-        navigate('/playgrounds');
+        navigate('/waiting');
         // 실패
       } else {
         const { name }: any = error;

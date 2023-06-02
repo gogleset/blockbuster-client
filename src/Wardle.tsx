@@ -55,6 +55,7 @@ import { useNavigate } from 'react-router-dom';
 import Div100vh from 'react-div-100vh';
 import { useAccount } from 'wagmi';
 import Swal from 'sweetalert2';
+import Timer from './components/timer/Timer';
 
 function App() {
   const { isConnected } = useAccount();
@@ -324,9 +325,10 @@ function App() {
       }
     }
   };
-  useEffect(() => {
-    console.log(currentGuess);
-  }, [currentGuess]);
+  // useEffect(() => {
+  //   // console.log(currentGuess, isRevealing, currentRowClass);
+  //   console.log(isRevealing);
+  // }, [isRevealing]);
 
   return (
     <Div100vh>
@@ -348,7 +350,18 @@ function App() {
         )}
 
         <div className='mx-auto flex w-full grow flex-col px-1 pt-2 pb-8 sm:px-6 md:max-w-7xl lg:px-8 short:pb-2 short:pt-2'>
-          <div className='flex grow flex-col justify-center pb-6 short:pb-2'>
+          {/* 턴, 타이머 */}
+          <div className='flex grow flex-col  pb-6 short:pb-2'>
+            <div className='flex flex-col justify-center items-center m-10'>
+              <div className='mb-1'>
+                <span></span>
+                {!isRevealing && <Timer />}
+              </div>
+              <div className=' flex bg-gray-300	w-3/4 h-8 rounded-md text-center items-center justify-center'>
+                <span className='text-red-600'>Your turn</span>
+              </div>
+            </div>
+
             <Grid
               solution={solution}
               guesses={guesses}
