@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect } from 'react';
 
 import { useAccount } from 'wagmi';
 import { useNavigate } from 'react-router-dom';
@@ -7,7 +7,8 @@ import Swal from 'sweetalert2';
 const WaitingRoom = () => {
   const { isConnected } = useAccount();
   const navigate = useNavigate();
-  const [ticket, setTicket] = useState(3);
+  // const [ticket, setTicket] = useState(3);
+  const ticket = 3;
 
   // 게임 시작 누를시
   function handleGameStartButtonEvent(
@@ -41,7 +42,7 @@ const WaitingRoom = () => {
       return navigate('/');
     } else {
     }
-  }, [isConnected]);
+  }, [isConnected, navigate]);
   return (
     <div className='flex flex-col w-8/12 bg-slate-600 justify-center mt-12'>
       <div className='flex flex-col w-full bg-slate-50 justify-center text-center align-middle h-screen'>

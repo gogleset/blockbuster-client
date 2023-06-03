@@ -13,7 +13,7 @@ export default function Timer() {
         navigate('/waiting');
       });
     }
-  }, [count]);
+  }, [count, navigate]);
 
   useEffect(() => {
     // 설정된 시간 간격마다 setInterval 콜백이 실행된다.

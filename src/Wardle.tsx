@@ -103,7 +103,7 @@ function App() {
 
   // solution 재설정
   useEffect(() => {
-    if (solution == '') {
+    if (solution === '') {
       const { solution: Solutions } = restart();
       setSolution(Solutions);
       setSolutionGameDate(getRandomDate(new Date(1990, 1, 1), new Date()));

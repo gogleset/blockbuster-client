@@ -11,7 +11,7 @@ const Home = () => {
     if (isConnected) {
       navigate('/waiting');
     }
-  }, [isConnected, address]);
+  }, [isConnected, navigate]);
   return (
     <div className='flex flex-col w-8/12 bg-slate-600 justify-center'>
       {/* home */}
