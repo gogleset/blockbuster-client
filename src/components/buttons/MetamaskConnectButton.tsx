@@ -1,22 +1,20 @@
 import { useNavigate } from 'react-router-dom';
-import { useEffect } from 'react';
-import { useAccount, useConnect } from 'wagmi';
-
+import { useConnect } from 'wagmi';
 import { checkMobile } from '../../util/userAgentHelper/userAgent';
+import { MetaMaskConnector } from 'wagmi/connectors/metaMask';
 
 export default function MetamaskConnectButton() {
   const USER_AGENT = checkMobile();
   const navigate = useNavigate();
-
   // 로그인 관련
-  const { isConnected } = useAccount();
   const { connect, connectors } = useConnect({
-    // 로그인 성공 실패 구현
-    onSettled(data, error): void {
+    connector: new MetaMaskConnector(),
+    // 지갑 로그인 성공 실패 구현
+    async onSettled(data, error) {
       // 성공
       if (data) {
         console.log(data);
-        navigate('/playgrounds');
+
         // 실패
       } else {
         const { name }: any = error;
@@ -45,16 +43,10 @@ export default function MetamaskConnectButton() {
       }
     },
   });
-  const connector = connectors[0];
-  // const { disconnect } = useDisconnect();
-  // 로그인 확인
-  useEffect(() => {
-    !isConnected && navigate('/');
-  }, [isConnected, navigate]);
 
   // 지갑 연결
   function onConnectClickHandler(): void {
-    connect({ connector });
+    connect();
   }
 
   // function onDisConnectClickHandler(): void {

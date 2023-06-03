@@ -24,7 +24,7 @@ ReactDOM.render(
             <Routes>
               <Route path='/playgrounds' element={<App />} />
               <Route path='/' element={<Home />} />
-              <Route path='/Join' element={<Join />} />
+              <Route path='/join' element={<Join />} />
             </Routes>
           </div>
         </div>
