@@ -6,10 +6,13 @@ import Swal from 'sweetalert2';
 import { useContext } from 'react';
 import { UserContext } from '../../store/context';
 import { sendMemberWithdrawal } from '../../util/send';
+import { useNavigate } from 'react-router-dom';
+import { disconnect } from 'process';
 
 const Header = () => {
   const { isConnected, address } = useAccount();
-  const { nickname, ticket_count, stateView } = useContext(UserContext);
+  const { nickname, ticket_count, stateReset } = useContext(UserContext);
+  const navigate = useNavigate();
 
   return (
     <div className='flex flex-row w-full bg-slate-100 h-12 justify-center items-center absolute top-0 left-0 border-2 border-b-black '>
@@ -48,11 +51,13 @@ If you guess the hidden word within six attempts, you win! Enjoy playing Wordle 
             <div
               className='w-30 bg-slate-200'
               onClick={() => {
+                // 닉네임 버튼 눌렀을때
                 Swal.fire({
                   title: 'User Detail',
                   confirmButtonColor: '#d33',
                   confirmButtonText: 'Membership Withdrawal',
                 }).then(async (result) => {
+                  // 만약 회원탈퇴버튼 눌렀다면
                   if (result.isConfirmed) {
                     try {
                       await sendMemberWithdrawal(address);
@@ -60,7 +65,11 @@ If you guess the hidden word within six attempts, you win! Enjoy playing Wordle 
                         'Deleted..',
                         'Your info has been deleted.',
                         'success'
-                      );
+                      ).then(() => {
+                        disconnect();
+                        stateReset();
+                        navigate('/');
+                      });
                     } catch (error) {
                       Swal.fire(`${error}`);
                     }

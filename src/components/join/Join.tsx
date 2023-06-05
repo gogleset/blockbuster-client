@@ -4,12 +4,24 @@ import { useNavigate } from 'react-router-dom';
 import MetamaskConnectButton from '../buttons/MetamaskConnectButton';
 import { sendNickname } from '../../util/send';
 import Swal from 'sweetalert2';
+import { sendMemberLogin } from './util/send';
+import { useContext } from 'react';
+import { UserContext } from '../../store/context';
+import { useDisconnect } from 'wagmi';
 
 const Join = () => {
   const { isConnected, address } = useAccount();
   const navigate = useNavigate();
+  const { disconnect } = useDisconnect();
   // 닉네임 받는 인풋
   const nicknameInput = useRef<HTMLInputElement>(null);
+  const {
+    setNickname,
+    setLoseCount,
+    setWinCount,
+    setTicketCount,
+    setRewardTicket,
+  } = useContext(UserContext);
 
   return (
     <div className='flex flex-col justify-center items-center mt-12'>
@@ -41,8 +53,21 @@ const Join = () => {
                     );
                     // 결과값 분기 처리 / 닉네임 글자가 있을 경우
                     if (result.data.result === true) {
-                      Swal.fire('Welcome!').then(() => {
-                        navigate('/waiting');
+                      Swal.fire('Welcome!').then(async () => {
+                        try {
+                          const result: any = await sendMemberLogin(address);
+                          setNickname(result.data.user_info.nickname);
+                          setLoseCount(result.data.user_info.lose_count);
+                          setWinCount(result.data.user_info.win_count);
+                          setTicketCount(result.data.user_info.ticket_count);
+                          setRewardTicket(result.data.user_info.reward_count);
+                          navigate('/waiting');
+                        } catch (error) {
+                          Swal.fire(`${error}`).then(() => {
+                            disconnect();
+                            navigate('/');
+                          });
+                        }
                       });
                       // 없을경우
                     } else {
