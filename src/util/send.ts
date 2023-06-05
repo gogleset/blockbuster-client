@@ -9,10 +9,7 @@ type sendNickname = (
   nickname: string | undefined
 ) => object | unknown;
 
-type sendBuyToken = (
-  wallet: string | undefined,
-  count: number
-) => object | undefined;
+type sendBuyToken = (wallet: string | undefined, count: number) => any;
 
 // 로그인 조회
 export const sendMemberLogin: sendLogin = async (wallet) => {
@@ -73,7 +70,10 @@ export const sendMemberWithdrawal: sendWithdrawal = async (wallet) => {
 };
 
 // 토큰구입
-export const sendBuyTokens: sendBuyToken = async (wallet, count) => {
+export const sendBuyTokens: sendBuyToken = async (
+  wallet,
+  count
+): Promise<object> => {
   try {
     const result = await axios.put(
       `${process.env.REACT_APP_DEV_SERVER_ADDRESS}ticket/buy`,
@@ -84,6 +84,6 @@ export const sendBuyTokens: sendBuyToken = async (wallet, count) => {
     );
     return result;
   } catch (error) {
-    return error;
+    throw error;
   }
 };

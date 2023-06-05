@@ -6,12 +6,14 @@ import Swal from 'sweetalert2';
 import { useContext } from 'react';
 import { UserContext } from '../../store/context';
 import { useDisconnect } from 'wagmi';
+import { sendBuyTokens } from '../../util/send';
 
 const WaitingRoom = () => {
-  const { isConnected } = useAccount();
+  const { isConnected, address } = useAccount();
   const navigate = useNavigate();
   const { disconnect } = useDisconnect();
-  const { ticket_count, stateReset, stateView } = useContext(UserContext);
+  const { ticket_count, stateReset, stateView, setTicketCount } =
+    useContext(UserContext);
 
   // 커넥트되지 않았을 경우
   useEffect(() => {
@@ -49,6 +51,23 @@ const WaitingRoom = () => {
         step: '1',
       },
       inputValue: 10,
+      //
+    }).then(async (res) => {
+      // 토큰 사기 확인 버튼
+      if (res.isConfirmed === true) {
+        console.log('but tokens');
+        console.log(res);
+        try {
+          const result = await sendBuyTokens(address, res.value);
+          console.log(result);
+          if (result) {
+            Swal.fire(`${result.data.msg}`);
+            setTicketCount(ticket_count + parseInt(res.value));
+          }
+        } catch (error) {
+          return Swal.fire(`${error}`);
+        }
+      }
     });
   }
 
@@ -56,14 +75,14 @@ const WaitingRoom = () => {
     <div className='flex flex-col w-8/12 bg-slate-600 justify-center mt-12'>
       <div className='flex flex-col w-full bg-slate-50 justify-center text-center align-middle h-screen'>
         <div className='text-2xl m-8'>
-          <h1>Token {ticket_count}</h1>
+          <h1>Your Ticket Number {ticket_count}</h1>
         </div>
         <div className='flex flex-col items-center'>
           <button
             className='bg-white hover:bg-gray-100 text-gray-800 font-semibold py-2 px-4 border border-gray-400 rounded shadow w-50 m-5'
             onClick={handleTokenBuyButtonEvent}
           >
-            토큰 구매하기
+            티켓 구매하기
           </button>
           {/* 토큰 상태별로 분기처리 */}
           {ticket_count > 2 && (

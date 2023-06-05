@@ -3,11 +3,12 @@ import TokenImage from '../../asset/img/Group.svg';
 import QuestionImage from '../../asset/img/Question.svg';
 import { useAccount } from 'wagmi';
 import Swal from 'sweetalert2';
-import { useContext, useEffect } from 'react';
+import { useContext } from 'react';
 import { UserContext } from '../../store/context';
+import { sendMemberWithdrawal } from '../../util/send';
 
 const Header = () => {
-  const { isConnected } = useAccount();
+  const { isConnected, address } = useAccount();
   const { nickname, ticket_count, stateView } = useContext(UserContext);
 
   return (
@@ -43,7 +44,32 @@ If you guess the hidden word within six attempts, you win! Enjoy playing Wordle 
                 <span>X {ticket_count}</span>
               </div>
             </div>
-            <div className='w-30 bg-slate-200'>{nickname}</div>
+            {/* 회원 탈퇴, 승률 상세정보 */}
+            <div
+              className='w-30 bg-slate-200'
+              onClick={() => {
+                Swal.fire({
+                  title: 'User Detail',
+                  confirmButtonColor: '#d33',
+                  confirmButtonText: 'Membership Withdrawal',
+                }).then(async (result) => {
+                  if (result.isConfirmed) {
+                    try {
+                      await sendMemberWithdrawal(address);
+                      Swal.fire(
+                        'Deleted..',
+                        'Your info has been deleted.',
+                        'success'
+                      );
+                    } catch (error) {
+                      Swal.fire(`${error}`);
+                    }
+                  }
+                });
+              }}
+            >
+              {nickname}
+            </div>
           </div>
         ) : (
           <div>지갑에 연결해주세요</div>
