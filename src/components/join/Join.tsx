@@ -39,7 +39,7 @@ const Join = () => {
                       address,
                       nicknameInput.current.value
                     );
-                    // 결과값 분기 처리 / 닉네임 있을 경우
+                    // 결과값 분기 처리 / 닉네임 글자가 있을 경우
                     if (result.data.result === true) {
                       Swal.fire('Welcome!').then(() => {
                         navigate('/waiting');

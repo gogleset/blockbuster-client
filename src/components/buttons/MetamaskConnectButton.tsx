@@ -7,14 +7,13 @@ export default function MetamaskConnectButton() {
   const USER_AGENT = checkMobile();
   const navigate = useNavigate();
   // 로그인 관련
-  const { connect, connectors } = useConnect({
+  const { connect } = useConnect({
     connector: new MetaMaskConnector(),
     // 지갑 로그인 성공 실패 구현
     async onSettled(data, error) {
       // 성공
       if (data) {
         console.log(data);
-
         // 실패
       } else {
         const { name }: any = error;

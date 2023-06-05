@@ -1,10 +1,10 @@
 import { ENABLE_ARCHIVED_GAMES } from '../constants/settings';
 import {
   NOT_CONTAINED_MESSAGE,
-  WRONG_SPOT_MESSAGE
+  WRONG_SPOT_MESSAGE,
 } from '../constants/strings';
-import { VALID_GUESSES } from '../constants/validGuesses6';
-import { WORDS } from '../constants/wordlist6';
+import { VALID_GUESSES } from '../constants/validGuesses';
+import { WORDS } from '../constants/wordlist';
 import { rand, getRandomDate } from '../util/random';
 //random 숫자와 random 날짜 리턴
 import { getToday } from './dateutils';
@@ -14,7 +14,7 @@ import {
   differenceInDays,
   formatISO,
   parseISO,
-  startOfDay
+  startOfDay,
 } from 'date-fns';
 import { default as GraphemeSplitter } from 'grapheme-splitter';
 import queryString from 'query-string';

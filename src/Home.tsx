@@ -4,10 +4,17 @@ import { useDisconnect, useAccount } from 'wagmi';
 import { useEffect } from 'react';
 import Swal from 'sweetalert2';
 import { sendMemberLogin } from './util/send';
+import { useContext } from 'react';
+import { UserContext } from './store/context';
+
 const Home = () => {
   const navigate = useNavigate();
   const { isConnected, address } = useAccount();
   const { disconnect } = useDisconnect();
+  const { setNickname } = useContext(UserContext);
+  console.log(setNickname);
+
+  // 로그인
   useEffect(() => {
     async function login() {
       // 로그인
@@ -15,6 +22,7 @@ const Home = () => {
         const result: any = await sendMemberLogin(address);
         console.log(result);
         if (result.data.result === true) {
+          setNickname(result.data.nickname);
           navigate('/waiting');
         } else {
           Swal.fire(`조회된 정보가 없습니다. 회원가입을 해주세요`).then(() => {
@@ -42,13 +50,6 @@ const Home = () => {
           <h1>Wardle</h1>
         </div>
         <div>
-          {/* <button
-            type='button'
-            className='bg-blue-500 hover:bg-blue-400 text-white font-bold py-2 px-4 border-b-4 border-blue-700 hover:border-blue-500 rounded w-40'
-            onClick={() => navigate('/playgrounds')}
-          >
-            로그인
-  </button> */}
           <MetamaskConnectButton />
           <div className='m-8'>
             <Link to='/join'>처음이신가요?</Link>
