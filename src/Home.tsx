@@ -11,7 +11,14 @@ const Home = () => {
   const navigate = useNavigate();
   const { isConnected, address } = useAccount();
   const { disconnect } = useDisconnect();
-  const { setNickname } = useContext(UserContext);
+  const {
+    setNickname,
+    setLoseCount,
+    setWinCount,
+    setTicketCount,
+    setRewardTicket,
+    stateView,
+  } = useContext(UserContext);
   console.log(setNickname);
 
   // 로그인
@@ -22,7 +29,11 @@ const Home = () => {
         const result: any = await sendMemberLogin(address);
         console.log(result);
         if (result.data.result === true) {
-          setNickname(result.data.nickname);
+          setNickname(result.data.user_info.nickname);
+          setLoseCount(result.data.user_info.lose_count);
+          setWinCount(result.data.user_info.win_count);
+          setTicketCount(result.data.user_info.ticket_count);
+          setRewardTicket(result.data.user_info.reward_count);
           navigate('/waiting');
         } else {
           Swal.fire(`조회된 정보가 없습니다. 회원가입을 해주세요`).then(() => {

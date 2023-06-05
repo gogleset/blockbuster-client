@@ -3,12 +3,12 @@ import TokenImage from '../../asset/img/Group.svg';
 import QuestionImage from '../../asset/img/Question.svg';
 import { useAccount } from 'wagmi';
 import Swal from 'sweetalert2';
-import { useContext } from 'react';
+import { useContext, useEffect } from 'react';
 import { UserContext } from '../../store/context';
 
 const Header = () => {
   const { isConnected } = useAccount();
-  const { nickname } = useContext(UserContext);
+  const { nickname, ticket_count, stateView } = useContext(UserContext);
 
   return (
     <div className='flex flex-row w-full bg-slate-100 h-12 justify-center items-center absolute top-0 left-0 border-2 border-b-black '>
@@ -40,7 +40,7 @@ If you guess the hidden word within six attempts, you win! Enjoy playing Wordle 
             <div className='flex item-center bg-slate-700 mr-5'>
               <img src={TokenImage} alt='TokenImage number' />
               <div className='pt-0.5 ml-1'>
-                <span>X {2}</span>
+                <span>X {ticket_count}</span>
               </div>
             </div>
             <div className='w-30 bg-slate-200'>{nickname}</div>
