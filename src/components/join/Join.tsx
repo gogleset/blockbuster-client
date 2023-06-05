@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import MetamaskConnectButton from '../buttons/MetamaskConnectButton';
 import { sendNickname } from '../../util/send';
 import Swal from 'sweetalert2';
-import { sendMemberLogin } from './util/send';
+import { sendMemberLogin } from '../../util/send';
 import { useContext } from 'react';
 import { UserContext } from '../../store/context';
 import { useDisconnect } from 'wagmi';

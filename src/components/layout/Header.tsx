@@ -1,18 +1,18 @@
 import { Link } from 'react-router-dom';
 import TokenImage from '../../asset/img/Group.svg';
 import QuestionImage from '../../asset/img/Question.svg';
-import { useAccount } from 'wagmi';
+import { useAccount, useDisconnect } from 'wagmi';
 import Swal from 'sweetalert2';
 import { useContext } from 'react';
 import { UserContext } from '../../store/context';
 import { sendMemberWithdrawal } from '../../util/send';
 import { useNavigate } from 'react-router-dom';
-import { disconnect } from 'process';
 
 const Header = () => {
   const { isConnected, address } = useAccount();
   const { nickname, ticket_count, stateReset } = useContext(UserContext);
   const navigate = useNavigate();
+  const { disconnect } = useDisconnect();
 
   return (
     <div className='flex flex-row w-full bg-slate-100 h-12 justify-center items-center absolute top-0 left-0 border-2 border-b-black '>
