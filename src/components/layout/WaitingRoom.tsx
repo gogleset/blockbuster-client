@@ -6,7 +6,7 @@ import Swal from 'sweetalert2';
 import { useContext } from 'react';
 import { UserContext } from '../../store/context';
 import { useDisconnect } from 'wagmi';
-import { sendBuyTokens } from '../../util/send';
+import { sendBuyTokens, sendUseTickets } from '../../util/send';
 
 const WaitingRoom = () => {
   const { isConnected, address } = useAccount();
@@ -41,12 +41,23 @@ const WaitingRoom = () => {
   }, [win_count, lose_count]);
 
   // 게임 시작 누를시
-  function handleGameStartButtonEvent(
+  async function handleGameStartButtonEvent(
     event: React.MouseEvent<HTMLButtonElement>
   ) {
     // 티켓이 있을 경우에만 플레이 가능하게하기
     if (ticket_count > 0) {
-      return navigate('/playgrounds');
+      try {
+        // ticket use 요청
+        const result = await sendUseTickets(address, 1, true);
+        if (result.data.result === false) {
+          Swal.fire(`${result.data.msg}`);
+        } else {
+          setTicketCount(ticket_count - 1);
+          navigate('/playgrounds');
+        }
+      } catch (err) {
+        Swal.fire(`${err}`);
+      }
     } else {
       Swal.fire('Please buy a ticket');
     }
@@ -91,7 +102,7 @@ const WaitingRoom = () => {
     if (winCount + loseCount === 0) {
       return 0;
     } else {
-      return winCount / (winCount + loseCount);
+      return (winCount / (winCount + loseCount)) * 100;
     }
   }
 
@@ -103,7 +114,8 @@ const WaitingRoom = () => {
           <h1 className='mt-10'>
             Victory {win_count} & Defeat {lose_count}
           </h1>
-          <h1 className='mt-10'>Winning Rate {winningRate}</h1>
+          <h1 className='mt-10'>Winning Rate {winningRate}%</h1>
+          <h1 className='mt-10'>Reward Ticket {reward_ticket}</h1>
         </div>
         <div className='flex flex-col items-center'>
           <button

@@ -2,7 +2,7 @@ import React, { useRef } from 'react';
 import { useAccount } from 'wagmi';
 import { useNavigate } from 'react-router-dom';
 import MetamaskConnectButton from '../buttons/MetamaskConnectButton';
-import { sendNickname } from '../../util/send';
+import { sendNicknames } from '../../util/send';
 import Swal from 'sweetalert2';
 import { sendMemberLogin } from '../../util/send';
 import { useContext } from 'react';
@@ -47,7 +47,7 @@ const Join = () => {
                 if (nicknameInput.current !== null) {
                   console.log(address, nicknameInput.current.value);
                   try {
-                    const result: any = await sendNickname(
+                    const result: any = await sendNicknames(
                       address,
                       nicknameInput.current.value
                     );

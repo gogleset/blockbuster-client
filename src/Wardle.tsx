@@ -45,7 +45,11 @@ import {
   // solutionGameDate as solGameDate,
   unicodeLength,
 } from './lib/words';
-import { sendRandomProblems } from './util/send';
+import {
+  sendRandomProblems,
+  sendRewardTicket,
+  sendWinCount,
+} from './util/send';
 import { getRandomDate } from './util/random';
 import { ClockIcon } from '@heroicons/react/outline';
 import { format } from 'date-fns';
@@ -70,6 +74,7 @@ function App() {
     reward_ticket,
     stateView,
   } = useContext(UserContext);
+  const { address } = useAccount();
 
   const [solution, setSolution] = useState('');
   const [solutionGameDate, setSolutionGameDate] = useState(new Date());
@@ -128,7 +133,6 @@ function App() {
   // solution 재설정
   useEffect(() => {
     setSolutionGameDate(getRandomDate(new Date(1990, 1, 1), new Date()));
-    console.log(solution, solutionGameDate);
   }, [setSolutionGameDate, solution]);
 
   const { showError: showErrorAlert, showSuccess: showSuccessAlert } =
@@ -242,6 +246,7 @@ function App() {
 
   useEffect(() => {
     saveGameStateToLocalStorage(getIsLatestGame(), { guesses, solution });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [guesses]);
 
   useEffect(() => {
@@ -261,6 +266,7 @@ function App() {
         setIsStatsModalOpen(true);
       }, (solution.length + 1) * REVEAL_TIME_MS);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isGameWon, isGameLost, showSuccessAlert]);
 
   const onChar = (value: string) => {
@@ -345,21 +351,56 @@ function App() {
       }
     }
   };
-  // 승 감지
+  // 승리 감지
   useEffect(() => {
-    // console.log(currentGuess, isRevealing, currentRowClass);
     console.log(isRevealing);
     if (isRevealing === true) {
-      Swal.fire('You Win!').then((result) => {
-        // 1. 승수 카운트 1증가 , 보상 티켓 카운트 1 증가, route 이동
+      Swal.fire('You Win!').then(async (result) => {
+        // 1. 승수 카운트 1증가 , 2.보상 티켓 카운트 1 증가, 3.route 이동
         if (result.isConfirmed === true) {
           console.log('성공');
-          setWinCount(win_count + 1);
-          setRewardTicket(reward_ticket + 1);
-          navigate('/waiting');
+          //1-1. 서버 통신
+          try {
+            const result = await sendWinCount(address);
+            //1-2. 서버 통신 실패할 경우
+            if (result.data.result === false) {
+              Swal.fire('failed');
+              navigate('/waiting');
+            } else {
+              // state 변경
+              setWinCount(win_count + 1);
+            }
+            // 그냥 서버 통신 자체가 실패할 경우
+          } catch (err) {
+            return Swal.fire(`${err}`).then((result) => {
+              if (result.isConfirmed) {
+                navigate('/waiting');
+              } else {
+                navigate('/waiting');
+              }
+            });
+          }
+          // 2.보상 티켓 카운트 1 증가 서버 연결
+          try {
+            //리워드 티켓 서버에 하나 등록
+            const result = await sendRewardTicket(address, 1, true);
+            // 서버 통신 실패할 경우
+            if (result.data.result === false) {
+              return Swal.fire('failed');
+            } else {
+              // state 변경
+              setRewardTicket(reward_ticket + 1);
+              Swal.fire(result.data.msg);
+              navigate('/waiting');
+            }
+            // 서버 실패시
+          } catch (err) {
+            return Swal.fire(`${err}`);
+          }
         }
       });
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isRevealing]);
 
   return (
@@ -385,10 +426,9 @@ function App() {
           {/* 턴, 타이머 */}
           <div className='flex grow flex-col  pb-6 short:pb-2'>
             <div className='flex flex-col justify-center items-center m-10'>
-              <div className='mb-1'>
-                <span></span>
-                {!isRevealing && <Timer />}
-              </div>
+              {solution !== '' && (
+                <div className='mb-1'>{!isRevealing && <Timer />}</div>
+              )}
               <div className=' flex bg-gray-300	w-3/4 h-8 rounded-md text-center items-center justify-center'>
                 <span className='text-red-600'>Your turn</span>
               </div>
