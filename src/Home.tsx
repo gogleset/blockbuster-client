@@ -17,9 +17,7 @@ const Home = () => {
     setWinCount,
     setTicketCount,
     setRewardTicket,
-    stateView,
   } = useContext(UserContext);
-  console.log(setNickname);
 
   // 로그인
   useEffect(() => {
@@ -33,7 +31,7 @@ const Home = () => {
           setLoseCount(result.data.user_info.lose_count);
           setWinCount(result.data.user_info.win_count);
           setTicketCount(result.data.user_info.ticket_count);
-          setRewardTicket(result.data.user_info.reward_count);
+          setRewardTicket(result.data.user_info.reward_ticket);
           navigate('/waiting');
         } else {
           Swal.fire(`조회된 정보가 없습니다. 회원가입을 해주세요`).then(() => {

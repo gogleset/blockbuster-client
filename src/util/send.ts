@@ -10,6 +10,7 @@ type sendNickname = (
 ) => object | unknown;
 
 type sendBuyToken = (wallet: string | undefined, count: number) => any;
+type sendRandomProblem = (count: string) => any;
 
 // 로그인 조회
 export const sendMemberLogin: sendLogin = async (wallet) => {
@@ -81,6 +82,19 @@ export const sendBuyTokens: sendBuyToken = async (
         wallet: wallet,
         count: count,
       }
+    );
+    return result;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const sendRandomProblems: sendRandomProblem = async (
+  count
+): Promise<object> => {
+  try {
+    const result = await axios.get(
+      `${process.env.REACT_APP_DEV_SERVER_ADDRESS}problem/random?length=${count}`
     );
     return result;
   } catch (error) {

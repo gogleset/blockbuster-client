@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 
 import { useAccount } from 'wagmi';
 import { useNavigate } from 'react-router-dom';
@@ -12,8 +12,16 @@ const WaitingRoom = () => {
   const { isConnected, address } = useAccount();
   const navigate = useNavigate();
   const { disconnect } = useDisconnect();
-  const { ticket_count, stateReset, stateView, setTicketCount } =
-    useContext(UserContext);
+  const {
+    ticket_count,
+    reward_ticket,
+    lose_count,
+    win_count,
+    stateReset,
+    stateView,
+    setTicketCount,
+  } = useContext(UserContext);
+  const [winningRate, setWinningRate] = useState(0);
 
   // 커넥트되지 않았을 경우
   useEffect(() => {
@@ -24,6 +32,13 @@ const WaitingRoom = () => {
       navigate('/');
     }
   }, [isConnected, navigate]);
+
+  // 승리수와 패배수 변경시
+  useEffect(() => {
+    // 승률 state 변경
+    setWinningRate(winingRate(win_count, lose_count));
+    stateView();
+  }, [win_count, lose_count]);
 
   // 게임 시작 누를시
   function handleGameStartButtonEvent(
@@ -71,11 +86,24 @@ const WaitingRoom = () => {
     });
   }
 
+  // 승률 처리
+  function winingRate(winCount: number, loseCount: number): number {
+    if (winCount + loseCount === 0) {
+      return 0;
+    } else {
+      return winCount / (winCount + loseCount);
+    }
+  }
+
   return (
     <div className='flex flex-col w-8/12 bg-slate-600 justify-center mt-12'>
       <div className='flex flex-col w-full bg-slate-50 justify-center text-center align-middle h-screen'>
         <div className='text-2xl m-8'>
           <h1>Your Ticket Number {ticket_count}</h1>
+          <h1 className='mt-10'>
+            Victory {win_count} & Defeat {lose_count}
+          </h1>
+          <h1 className='mt-10'>Winning Rate {winningRate}</h1>
         </div>
         <div className='flex flex-col items-center'>
           <button
@@ -91,6 +119,15 @@ const WaitingRoom = () => {
               onClick={handleGameStartButtonEvent}
             >
               게임시작
+            </button>
+          )}
+
+          {reward_ticket > 0 && (
+            <button
+              className='bg-white hover:bg-gray-100 text-gray-800 font-semibold py-2 px-4 border border-gray-400 rounded shadow w-50 mt-5'
+              // onClick={}
+            >
+              보상 요청하기
             </button>
           )}
         </div>

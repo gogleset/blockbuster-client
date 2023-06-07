@@ -44,8 +44,8 @@ import {
   setGameDate, // solution as sol,
   // solutionGameDate as solGameDate,
   unicodeLength,
-  restart,
 } from './lib/words';
+import { sendRandomProblems } from './util/send';
 import { getRandomDate } from './util/random';
 import { ClockIcon } from '@heroicons/react/outline';
 import { format } from 'date-fns';
@@ -56,10 +56,27 @@ import Div100vh from 'react-div-100vh';
 import { useAccount } from 'wagmi';
 import Swal from 'sweetalert2';
 import Timer from './components/timer/Timer';
+import { useContext } from 'react';
+import { UserContext } from './store/context';
 
 function App() {
   const { isConnected } = useAccount();
   const navigate = useNavigate();
+  let {
+    win_count,
+    setLoseCount,
+    setWinCount,
+    setRewardTicket,
+    reward_ticket,
+    stateView,
+  } = useContext(UserContext);
+
+  const [solution, setSolution] = useState('');
+  const [solutionGameDate, setSolutionGameDate] = useState(new Date());
+  // 문제 1.함수가 재 실행될때만 가능 처음 앱 실행시 실행되는 것 같음
+  // 해결 방법 useEffect로 wardle이 실행될 때 함수 재실행하게 할 수 있음
+  console.log(solution);
+  // const isLatestGame = getIsLatestGame();
 
   // 로그인 안할경우 리턴
   useEffect(() => {
@@ -80,20 +97,27 @@ function App() {
         denyButtonText: '6 length',
         // cancelButtonText: '7 length',
         allowOutsideClick: false,
-      }).then((result) => {
+      }).then(async (result) => {
         if (result.isConfirmed) {
-          Swal.fire('Deleted!', 'Your file has been deleted.', 'success');
+          try {
+            const result = await sendRandomProblems('5');
+            // 서버 불러오기 성공했을 경우
+            if (result.status === 200) {
+              console.log('성공');
+              setSolution(result.data.word.toUpperCase());
+            } else {
+              //서버에서 불러오기 실패했을 경우
+              Swal.fire('word not found').then(() => {
+                navigate('/waiting');
+              });
+            }
+          } catch (err) {
+            Swal.fire('error!', `${err}`);
+          }
         }
       });
     }
   }, [isConnected, navigate]);
-
-  const [solution, setSolution] = useState('');
-  const [solutionGameDate, setSolutionGameDate] = useState(new Date());
-  // 문제 1.함수가 재 실행될때만 가능 처음 앱 실행시 실행되는 것 같음
-  // 해결 방법 useEffect로 wardle이 실행될 때 함수 재실행하게 할 수 있음
-  console.log(solution);
-  // const isLatestGame = getIsLatestGame();
 
   let isLatestGame = getIsLatestGame();
   let gameDate = getGameDate();
@@ -103,13 +127,9 @@ function App() {
 
   // solution 재설정
   useEffect(() => {
-    if (solution === '') {
-      const { solution: Solutions } = restart();
-      setSolution(Solutions);
-      setSolutionGameDate(getRandomDate(new Date(1990, 1, 1), new Date()));
-    }
+    setSolutionGameDate(getRandomDate(new Date(1990, 1, 1), new Date()));
     console.log(solution, solutionGameDate);
-  }, [solution, solutionGameDate]);
+  }, [setSolutionGameDate, solution]);
 
   const { showError: showErrorAlert, showSuccess: showSuccessAlert } =
     useAlert();
@@ -325,10 +345,22 @@ function App() {
       }
     }
   };
-  // useEffect(() => {
-  //   // console.log(currentGuess, isRevealing, currentRowClass);
-  //   console.log(isRevealing);
-  // }, [isRevealing]);
+  // 승 감지
+  useEffect(() => {
+    // console.log(currentGuess, isRevealing, currentRowClass);
+    console.log(isRevealing);
+    if (isRevealing === true) {
+      Swal.fire('You Win!').then((result) => {
+        // 1. 승수 카운트 1증가 , 보상 티켓 카운트 1 증가, route 이동
+        if (result.isConfirmed === true) {
+          console.log('성공');
+          setWinCount(win_count + 1);
+          setRewardTicket(reward_ticket + 1);
+          navigate('/waiting');
+        }
+      });
+    }
+  }, [isRevealing]);
 
   return (
     <Div100vh>
