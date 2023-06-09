@@ -7,7 +7,7 @@ import { sendLoseCount } from '../../util/send';
 import { useAccount } from 'wagmi';
 export default function Timer() {
   // 시간을 담을 변수
-  const [count, setCount] = useState(5);
+  const [count, setCount] = useState(600);
   const navigate = useNavigate();
   const { lose_count, setLoseCount } = useContext(UserContext);
   const { address } = useAccount();

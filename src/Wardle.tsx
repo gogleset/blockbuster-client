@@ -354,52 +354,56 @@ function App() {
   // 승리 감지
   useEffect(() => {
     console.log(isRevealing);
+
     if (isRevealing === true) {
-      Swal.fire('You Win!').then(async (result) => {
-        // 1. 승수 카운트 1증가 , 2.보상 티켓 카운트 1 증가, 3.route 이동
-        if (result.isConfirmed === true) {
-          console.log('성공');
-          //1-1. 서버 통신
-          try {
-            const result = await sendWinCount(address);
-            //1-2. 서버 통신 실패할 경우
-            if (result.data.result === false) {
-              Swal.fire('failed');
-              navigate('/waiting');
-            } else {
-              // state 변경
-              setWinCount(win_count + 1);
-            }
-            // 그냥 서버 통신 자체가 실패할 경우
-          } catch (err) {
-            return Swal.fire(`${err}`).then((result) => {
-              if (result.isConfirmed) {
+      if (currentGuess === solution) {
+        Swal.fire('You Win!').then(async (result) => {
+          // 1. 승수 카운트 1증가 , 2.보상 티켓 카운트 1 증가, 3.route 이동
+          if (result.isConfirmed === true) {
+            console.log('성공');
+            //1-1. 서버 통신
+            try {
+              const result = await sendWinCount(address);
+              //1-2. 서버 통신 실패할 경우
+              if (result.data.result === false) {
+                Swal.fire('failed');
                 navigate('/waiting');
               } else {
+                // state 변경
+                setWinCount(win_count + 1);
+              }
+              // 그냥 서버 통신 자체가 실패할 경우
+            } catch (err) {
+              return Swal.fire(`${err}`).then((result) => {
+                if (result.isConfirmed) {
+                  navigate('/waiting');
+                } else {
+                  navigate('/waiting');
+                }
+              });
+            }
+            // 2.보상 티켓 카운트 1 증가 서버 연결
+            try {
+              //리워드 티켓 서버에 하나 등록
+              const result = await sendRewardTicket(address, 1, true);
+              // 서버 통신 실패할 경우
+              if (result.data.result === false) {
+                return Swal.fire('failed');
+              } else {
+                // state 변경
+                setRewardTicket(reward_ticket + 1);
+                Swal.fire(result.data.msg);
                 navigate('/waiting');
               }
-            });
-          }
-          // 2.보상 티켓 카운트 1 증가 서버 연결
-          try {
-            //리워드 티켓 서버에 하나 등록
-            const result = await sendRewardTicket(address, 1, true);
-            // 서버 통신 실패할 경우
-            if (result.data.result === false) {
-              return Swal.fire('failed');
-            } else {
-              // state 변경
-              setRewardTicket(reward_ticket + 1);
-              Swal.fire(result.data.msg);
-              navigate('/waiting');
+              // 서버 실패시
+            } catch (err) {
+              return Swal.fire(`${err}`);
             }
-            // 서버 실패시
-          } catch (err) {
-            return Swal.fire(`${err}`);
           }
-        }
-      });
+        });
+      }
     }
+
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isRevealing]);
 
