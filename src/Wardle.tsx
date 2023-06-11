@@ -78,9 +78,10 @@ function App() {
   const { address } = useAccount();
 
   // socket values
-  let roomNumber;
-  let userNumber;
+  let roomNumber: any;
+  const [userNumber, setUserNumber] = useState(1);
   let pending = true;
+  const [userTurn, setUserTurn] = useState(1);
 
   const [solution, setSolution] = useState('');
   const [solutionGameDate, setSolutionGameDate] = useState(new Date());
@@ -93,8 +94,9 @@ function App() {
   useEffect(() => {
     if (!isConnected) {
       return navigate('/');
-    } else {
       // 로그인 했을 경우 난이도 설정
+    } else {
+      // 대기중인 경우
       Swal.fire({
         title: 'choose word length',
         text: 'choose any! haha',
@@ -108,39 +110,64 @@ function App() {
         denyButtonText: '6 length',
         // cancelButtonText: '7 length',
         allowOutsideClick: false,
-      }).then(async (result) => {
+      }).then((result) => {
+        // length 5개로 했을때
         if (result.isConfirmed) {
+          // 대기방 대기 타이머
+          let interval: any;
+          // 방 들어가기
           intoRoom(5);
-          // try {
-          //   const result = await sendRandomProblems('5');
-          //   // 서버 불러오기 성공했을 경우
-          //   if (result.status === 200) {
-          //     console.log('성공');
-          //     setSolution(result.data.word.toUpperCase());
-          //   } else {
-          //     //서버에서 불러오기 실패했을 경우
-          //     Swal.fire('word not found').then(() => {
-          //       navigate('/waiting');
-          //     });
-          //   }
-          // } catch (err) {
-          //   Swal.fire('error!', `${err}`);
-          // }
+          // 대기목록 관리
+          Swal.fire({
+            title: 'waiting for another users...',
+            allowOutsideClick: false,
+            // 로딩창 켜지기(pending이 true일 경우)
+            didOpen: () => {
+              if (pending) {
+                Swal.showLoading();
+              }
+            },
+            // 로딩중이 뜨는 상태
+            didRender: () => {
+              // pending이 아니라면 닫기
+              interval = setInterval(() => {
+                if (!pending) {
+                  console.log('pending out did render');
+                  Swal.close();
+                  // Swal.fire('fight!');
+                }
+              }, 100);
+            },
+            didClose() {
+              clearInterval(interval);
+            },
+          }).then((result) => {
+            /* Read more about handling dismissals below */
+            if (result.dismiss) {
+              console.log('pending out!!!');
+              clearInterval(interval);
+              Swal.fire('fight!');
+            }
+          });
         }
       });
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isConnected, navigate]);
-
+  // socket
   useEffect(() => {
-    // socket
+    //내가 만든 채팅 서버로부터의 메시지 수신 - pending관리
     socket.on('insert_room', (data) => {
       const result = data;
       if (result.result === 'success') {
         console.log(result);
         console.log('result.roomNum ' + result.roomNum);
         // 방 넘버
+        // eslint-disable-next-line react-hooks/exhaustive-deps
         roomNumber = String(result.roomNum);
-        userNumber = result.userNumber;
+
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+        setUserNumber(result.userNumber);
         console.log('roomNumber ' + roomNumber);
         console.log('client roomNumber ::: ' + roomNumber);
         console.log('client userNumber ::: ' + userNumber);
@@ -152,9 +179,38 @@ function App() {
       console.log('pending:::' + JSON.stringify(data));
       // 서버에 두명이 가득찼거나 서버 통신이 성공이라면
       if (data.result === 'success' && data.pending === false) {
-        pending = data.pending;
+        pending = false;
       } else {
         pending = true;
+      }
+    });
+    //내가 만든 채팅 서버로부터의 메시지 수신 - 답 관리
+    socket.on('answer', (data) => {
+      console.log('answer:::' + JSON.stringify(data));
+      // 답을 맞췄을때
+      if (
+        data.result === 'success' &&
+        data.gameWin === true &&
+        data.userNum === userNumber
+      ) {
+        // 보상 주어짐
+        alert('you win!');
+        socket.emit('leaveRoom', roomNumber);
+      } else if (
+        data.result === 'success' &&
+        data.gameWin === true &&
+        data.userNum !== userNumber
+      ) {
+        alert('you lose..');
+        socket.emit('leaveRoom', roomNumber);
+      }
+    });
+    socket.on('turn', (data) => {
+      console.log('turn:::' + JSON.stringify(data));
+      if (data.result === 'success') {
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+        setUserTurn(data.userTurn);
+        console.log('userTurn ::: ' + userTurn);
       }
     });
   }, []);
@@ -469,7 +525,9 @@ function App() {
                 <div className='mb-1'>{!isRevealing && <Timer />}</div>
               )}
               <div className=' flex bg-gray-300	w-3/4 h-8 rounded-md text-center items-center justify-center'>
-                <span className='text-red-600'>Your turn</span>
+                <span className='text-red-600'>
+                  {userTurn == userNumber ? 'Your turn' : 'Not Your Turn'}
+                </span>
               </div>
             </div>
 
