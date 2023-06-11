@@ -62,6 +62,7 @@ import Swal from 'sweetalert2';
 import Timer from './components/timer/Timer';
 import { useContext } from 'react';
 import { UserContext } from './store/context';
+import { socket, intoRoom } from './util/socket';
 
 function App() {
   const { isConnected } = useAccount();
@@ -75,6 +76,11 @@ function App() {
     stateView,
   } = useContext(UserContext);
   const { address } = useAccount();
+
+  // socket values
+  let roomNumber;
+  let userNumber;
+  let pending = true;
 
   const [solution, setSolution] = useState('');
   const [solutionGameDate, setSolutionGameDate] = useState(new Date());
@@ -104,25 +110,54 @@ function App() {
         allowOutsideClick: false,
       }).then(async (result) => {
         if (result.isConfirmed) {
-          try {
-            const result = await sendRandomProblems('5');
-            // 서버 불러오기 성공했을 경우
-            if (result.status === 200) {
-              console.log('성공');
-              setSolution(result.data.word.toUpperCase());
-            } else {
-              //서버에서 불러오기 실패했을 경우
-              Swal.fire('word not found').then(() => {
-                navigate('/waiting');
-              });
-            }
-          } catch (err) {
-            Swal.fire('error!', `${err}`);
-          }
+          intoRoom(5);
+          // try {
+          //   const result = await sendRandomProblems('5');
+          //   // 서버 불러오기 성공했을 경우
+          //   if (result.status === 200) {
+          //     console.log('성공');
+          //     setSolution(result.data.word.toUpperCase());
+          //   } else {
+          //     //서버에서 불러오기 실패했을 경우
+          //     Swal.fire('word not found').then(() => {
+          //       navigate('/waiting');
+          //     });
+          //   }
+          // } catch (err) {
+          //   Swal.fire('error!', `${err}`);
+          // }
         }
       });
     }
   }, [isConnected, navigate]);
+
+  useEffect(() => {
+    // socket
+    socket.on('insert_room', (data) => {
+      const result = data;
+      if (result.result === 'success') {
+        console.log(result);
+        console.log('result.roomNum ' + result.roomNum);
+        // 방 넘버
+        roomNumber = String(result.roomNum);
+        userNumber = result.userNumber;
+        console.log('roomNumber ' + roomNumber);
+        console.log('client roomNumber ::: ' + roomNumber);
+        console.log('client userNumber ::: ' + userNumber);
+      }
+    });
+
+    //내가 만든 채팅 서버로부터의 메시지 수신 - pending관리
+    socket.on('pending', (data) => {
+      console.log('pending:::' + JSON.stringify(data));
+      // 서버에 두명이 가득찼거나 서버 통신이 성공이라면
+      if (data.result === 'success' && data.pending === false) {
+        pending = data.pending;
+      } else {
+        pending = true;
+      }
+    });
+  }, []);
 
   let isLatestGame = getIsLatestGame();
   let gameDate = getGameDate();
