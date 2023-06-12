@@ -62,7 +62,7 @@ import Swal from 'sweetalert2';
 import Timer from './components/timer/Timer';
 import { useContext } from 'react';
 import { UserContext } from './store/context';
-import { socket, intoRoom } from './util/socket';
+import { socket, intoRoom, sendMessage } from './util/socket';
 
 function App() {
   const { isConnected } = useAccount();
@@ -78,7 +78,7 @@ function App() {
   const { address } = useAccount();
 
   // socket values
-  let roomNumber: any;
+  const [roomNumber, setRoomNumber] = useState('');
   const [userNumber, setUserNumber] = useState(0);
   // userNumber를 업데이트 하기 위한 temp 변수
   const [userNum, setUserNum] = useState(0);
@@ -92,159 +92,11 @@ function App() {
   console.log(solution);
   // const isLatestGame = getIsLatestGame();
 
-  // 로그인 안할경우 리턴
-  useEffect(() => {
-    if (!isConnected) {
-      return navigate('/');
-      // 로그인 했을 경우 난이도 설정
-    } else {
-      // 대기중인 경우
-      Swal.fire({
-        title: 'choose word length',
-        text: 'choose any! haha',
-        icon: 'question',
-        // showCancelButton: true,
-        showDenyButton: true,
-        confirmButtonColor: '#5a83aa',
-        // cancelButtonColor: '#1c2052',
-        denyButtonColor: '#333edd',
-        confirmButtonText: '5 length',
-        denyButtonText: '6 length',
-        // cancelButtonText: '7 length',
-        allowOutsideClick: false,
-      }).then((result) => {
-        // length 5개로 했을때
-        if (result.isConfirmed) {
-          // 대기방 대기 타이머
-          let interval: any;
-          // 방 들어가기
-          intoRoom(5);
-          // 대기목록 관리
-          Swal.fire({
-            title: 'waiting for another users...',
-            allowOutsideClick: false,
-            // 로딩창 켜지기(pending이 true일 경우)
-            didOpen: () => {
-              if (pending) {
-                Swal.showLoading();
-              }
-            },
-            // 로딩중이 뜨는 상태
-            didRender: () => {
-              // pending이 아니라면 닫기
-              interval = setInterval(() => {
-                if (!pending) {
-                  console.log('pending out did render');
-                  Swal.close();
-                  // Swal.fire('fight!');
-                }
-              }, 100);
-            },
-            didClose() {
-              clearInterval(interval);
-            },
-          }).then((result) => {
-            /* Read more about handling dismissals below */
-            if (result.dismiss) {
-              console.log('pending out!!!');
-              clearInterval(interval);
-              Swal.fire('fight!');
-            }
-          });
-        }
-      });
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isConnected, navigate]);
-
-  useEffect(() => {
-    // console.log('client userNum ::: ' + userNum);
-    if (userNum === 1) {
-      // console.log('userNum === ' + userNum);
-      setUserNumber(userNum);
-    } else if (userNum === 2) {
-      // console.log('userNum === ' + userNum);
-      // 초기값이 없는 경우에만 할당
-      if (userNumber === 0) {
-        setUserNumber(userNum);
-      }
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [userNum]);
-
-  // socket
-  useEffect(() => {
-    //내가 만든 채팅 서버로부터의 메시지 수신 - pending관리
-
-    socket.on('insert_room', (data) => {
-      const result = data;
-      if (result.result === 'success') {
-        console.log('insert_room result ::: ' + JSON.stringify(result));
-        console.log('result.roomNum ' + result.roomNum);
-        // 방 넘버
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-        roomNumber = String(result.roomNum);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-        // temp 업데이트
-        setUserNum(result.userNumber);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-        console.log('client roomNumber ::: ' + roomNumber);
-      }
-    });
-
-    //내가 만든 채팅 서버로부터의 메시지 수신 - pending관리
-    socket.on('pending', (data) => {
-      console.log('pending:::' + JSON.stringify(data));
-      // 서버에 두명이 가득찼거나 서버 통신이 성공이라면
-      if (data.result === 'success' && data.pending === false) {
-        pending = false;
-        // 정답 설정
-        setSolution(data.answer.toUpperCase());
-      } else {
-        pending = true;
-      }
-    });
-    //내가 만든 채팅 서버로부터의 메시지 수신 - 답 관리
-    socket.on('answer', (data) => {
-      console.log('answer:::' + JSON.stringify(data));
-      // 답을 맞췄을때
-      if (
-        data.result === 'success' &&
-        data.gameWin === true &&
-        data.userNum === userNumber
-      ) {
-        // 보상 주어짐
-        alert('you win!');
-        socket.emit('leaveRoom', roomNumber);
-      } else if (
-        data.result === 'success' &&
-        data.gameWin === true &&
-        data.userNum !== userNumber
-      ) {
-        alert('you lose..');
-        socket.emit('leaveRoom', roomNumber);
-      }
-    });
-    socket.on('turn', (data) => {
-      console.log('turn:::' + JSON.stringify(data));
-      if (data.result === 'success') {
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-        setUserTurn(data.userTurn);
-        console.log('userTurn ::: ' + userTurn);
-      }
-    });
-  }, []);
   let isLatestGame = getIsLatestGame();
   let gameDate = getGameDate();
   const prefersDarkMode = window.matchMedia(
     '(prefers-color-scheme: dark)'
   ).matches;
-
-  // solution 재설정
-  useEffect(() => {
-    setSolutionGameDate(getRandomDate(new Date(1990, 1, 1), new Date()));
-  }, [setSolutionGameDate, solution]);
-
   const { showError: showErrorAlert, showSuccess: showSuccessAlert } =
     useAlert();
   // 현재 쓴 word들 인거 같음
@@ -379,27 +231,34 @@ function App() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isGameWon, isGameLost, showSuccessAlert]);
 
+  // character 입력 시 반응 함수
   const onChar = (value: string) => {
     if (
       unicodeLength(`${currentGuess}${value}`) <= solution.length &&
       guesses.length < MAX_CHALLENGES &&
       !isGameWon
     ) {
+      console.log(value);
       setCurrentGuess(`${currentGuess}${value}`);
     }
   };
 
+  // delete 입력시 반응 함수
   const onDelete = () => {
+    console.log('delete!!');
     setCurrentGuess(
       new GraphemeSplitter().splitGraphemes(currentGuess).slice(0, -1).join('')
     );
   };
-
+  // Enter 입력시 반응 함수
   const onEnter = () => {
+    console.log('Enter!!');
+    // 게임을 이기거나 지면 리턴
     if (isGameWon || isGameLost) {
       return;
     }
-
+    // console.log('currentGuess ::: ' + currentGuess);
+    // console.log('currnentRowClass ::: ' + currentRowClass);
     if (!(unicodeLength(currentGuess) === solution.length)) {
       setCurrentRowClass('jiggle');
       return showErrorAlert(NOT_ENOUGH_LETTERS_MESSAGE, {
@@ -433,22 +292,29 @@ function App() {
     }, REVEAL_TIME_MS * solution.length);
 
     const winningWord = isWinningWord(currentGuess);
-
+    // 실제 단어같은 단어만 인지하여 winningWord 판단(solution)
+    /** 소켓로직구현
+     *1. Enter시  내 턴이 아니면 상대가 Enter 치는 걸 알아야 한다.
+          - 
+     */
+    console.log('winningWord ::: ' + winningWord);
     if (
       unicodeLength(currentGuess) === solution.length &&
       guesses.length < MAX_CHALLENGES &&
       !isGameWon
     ) {
+      // 답변한 답변들 추가 [...지금까지쳤던단어들, 현재단어]
       setGuesses([...guesses, currentGuess]);
+      //
       setCurrentGuess('');
-
-      if (winningWord) {
-        if (isLatestGame) {
-          setStats(addStatsForCompletedGame(stats, guesses.length));
-        }
-        return setIsGameWon(true);
-      }
-
+      // 게임 이겼을때
+      // if (winningWord) {
+      //   if (isLatestGame) {
+      //     setStats(addStatsForCompletedGame(stats, guesses.length));
+      //   }
+      //   return setIsGameWon(true);
+      // }
+      // 마지막번호까지 입력 한 후에도 실패시 -둘다 실패
       if (guesses.length === MAX_CHALLENGES - 1) {
         if (isLatestGame) {
           setStats(addStatsForCompletedGame(stats, guesses.length + 1));
@@ -463,11 +329,22 @@ function App() {
   };
   // 승리 감지
   useEffect(() => {
-    console.log(isRevealing);
-
     if (isRevealing === true) {
+      console.log('isRevealing :: true');
+      console.log(currentGuess);
+      // 단어다운단어를 치면 socket에 담아 보내기
+      console.log(roomNumber, [...guesses, currentGuess], userNumber);
+      sendMessage({
+        roomNum: roomNumber,
+        value: [...guesses, currentGuess], // 답변한 답변들 추가 [...지금까지쳤던단어들, 현재단어]
+        userNum: userNumber,
+      });
       if (currentGuess === solution) {
-        Swal.fire('You Win!').then(async (result) => {
+        Swal.fire({
+          title: 'You Win',
+          allowOutsideClick: false,
+          confirmButtonText: 'OK',
+        }).then(async (result) => {
           // 1. 승수 카운트 1증가 , 2.보상 티켓 카운트 1 증가, 3.route 이동
           if (result.isConfirmed === true) {
             console.log('성공');
@@ -516,6 +393,154 @@ function App() {
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isRevealing]);
+
+  // 로그인 안할경우 리턴
+  useEffect(() => {
+    if (!isConnected) {
+      return navigate('/');
+      // 로그인 했을 경우 난이도 설정
+    } else {
+      // 대기중인 경우
+      Swal.fire({
+        title: 'choose word length',
+        text: 'choose any! haha',
+        icon: 'question',
+        // showCancelButton: true,
+        showDenyButton: true,
+        confirmButtonColor: '#5a83aa',
+        // cancelButtonColor: '#1c2052',
+        denyButtonColor: '#333edd',
+        confirmButtonText: '5 length',
+        denyButtonText: '6 length',
+        // cancelButtonText: '7 length',
+        allowOutsideClick: false,
+      }).then((result) => {
+        // length 5개로 했을때
+        if (result.isConfirmed) {
+          // 대기방 대기 타이머
+          let interval: any;
+          // 방 들어가기
+          intoRoom(5);
+          // 대기목록 관리
+          Swal.fire({
+            title: 'waiting for another users...',
+            allowOutsideClick: false,
+            // 로딩창 켜지기(pending이 true일 경우)
+            didOpen: () => {
+              if (pending) {
+                Swal.showLoading();
+              }
+            },
+            // 로딩중이 뜨는 상태
+            didRender: () => {
+              // pending이 아니라면 닫기
+              interval = setInterval(() => {
+                if (!pending) {
+                  console.log('pending out did render');
+                  Swal.close();
+                  // Swal.fire('fight!');
+                }
+              }, 100);
+            },
+            didClose() {
+              clearInterval(interval);
+            },
+          }).then((result) => {
+            /* Read more about handling dismissals below */
+            if (result.dismiss) {
+              console.log('pending out!!!');
+              clearInterval(interval);
+              Swal.fire('fight!');
+            }
+          });
+        }
+      });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isConnected, navigate]);
+
+  useEffect(() => {
+    // console.log('client userNum ::: ' + userNum);
+    if (userNum === 1) {
+      // console.log('userNum === ' + userNum);
+      setUserNumber(userNum);
+    } else if (userNum === 2) {
+      // console.log('userNum === ' + userNum);
+      // 초기값이 없는 경우에만 할당
+      if (userNumber === 0) {
+        setUserNumber(userNum);
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userNum]);
+
+  // socket
+  useEffect(() => {
+    //내가 만든 채팅 서버로부터의 메시지 수신 - pending관리
+
+    socket.on('insert_room', (data) => {
+      const result = data;
+      if (result.result === 'success') {
+        console.log('insert_room result ::: ' + JSON.stringify(result));
+        console.log('result.roomNum ' + result.roomNum);
+        // 방 넘버
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+        setRoomNumber(String(result.roomNum));
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // temp 업데이트
+        setUserNum(result.userNumber);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+        console.log('client roomNumber ::: ' + roomNumber);
+      }
+    });
+
+    //내가 만든 채팅 서버로부터의 메시지 수신 - pending관리
+    socket.on('pending', (data) => {
+      console.log('pending:::' + JSON.stringify(data));
+      // 서버에 두명이 가득찼거나 서버 통신이 성공이라면
+      if (data.result === 'success' && data.pending === false) {
+        pending = false;
+        // 정답 설정
+        setSolution(data.answer.toUpperCase());
+      } else {
+        pending = true;
+      }
+    });
+    //내가 만든 채팅 서버로부터의 메시지 수신 - 답 관리
+    socket.on('answer', (data) => {
+      console.log('answer:::' + JSON.stringify(data));
+      // 답을 맞췄을때
+      if (
+        data.result === 'success' &&
+        data.gameWin === true &&
+        data.userNum === userNumber
+      ) {
+        // 보상 주어짐
+        alert('you win!');
+        socket.emit('leaveRoom', roomNumber);
+      } else if (
+        data.result === 'success' &&
+        data.gameWin === true &&
+        data.userNum !== userNumber
+      ) {
+        alert('you lose..');
+        socket.emit('leaveRoom', roomNumber);
+      }
+    });
+    socket.on('turn', (data) => {
+      console.log('turn:::' + JSON.stringify(data));
+      if (data.result === 'success') {
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+        setUserTurn(data.userTurn);
+        console.log('userTurn ::: ' + userTurn);
+      }
+    });
+  }, []);
+
+  // solution 재설정
+  useEffect(() => {
+    setSolutionGameDate(getRandomDate(new Date(1990, 1, 1), new Date()));
+  }, [setSolutionGameDate, solution]);
   console.log(userTurn, userNumber);
   return (
     <Div100vh>
