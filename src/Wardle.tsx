@@ -79,7 +79,9 @@ function App() {
 
   // socket values
   let roomNumber: any;
-  const [userNumber, setUserNumber] = useState(1);
+  const [userNumber, setUserNumber] = useState(0);
+  // userNumber를 업데이트 하기 위한 temp 변수
+  const [userNum, setUserNum] = useState(0);
   let pending = true;
   const [userTurn, setUserTurn] = useState(1);
 
@@ -154,23 +156,39 @@ function App() {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isConnected, navigate]);
+
+  useEffect(() => {
+    // console.log('client userNum ::: ' + userNum);
+    if (userNum === 1) {
+      // console.log('userNum === ' + userNum);
+      setUserNumber(userNum);
+    } else if (userNum === 2) {
+      // console.log('userNum === ' + userNum);
+      // 초기값이 없는 경우에만 할당
+      if (userNumber === 0) {
+        setUserNumber(userNum);
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userNum]);
+
   // socket
   useEffect(() => {
     //내가 만든 채팅 서버로부터의 메시지 수신 - pending관리
+
     socket.on('insert_room', (data) => {
       const result = data;
       if (result.result === 'success') {
-        console.log(result);
+        console.log('insert_room result ::: ' + JSON.stringify(result));
         console.log('result.roomNum ' + result.roomNum);
         // 방 넘버
         // eslint-disable-next-line react-hooks/exhaustive-deps
         roomNumber = String(result.roomNum);
-
         // eslint-disable-next-line react-hooks/exhaustive-deps
-        setUserNumber(result.userNumber);
-        console.log('roomNumber ' + roomNumber);
+        // temp 업데이트
+        setUserNum(result.userNumber);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
         console.log('client roomNumber ::: ' + roomNumber);
-        console.log('client userNumber ::: ' + userNumber);
       }
     });
 
@@ -180,6 +198,8 @@ function App() {
       // 서버에 두명이 가득찼거나 서버 통신이 성공이라면
       if (data.result === 'success' && data.pending === false) {
         pending = false;
+        // 정답 설정
+        setSolution(data.answer.toUpperCase());
       } else {
         pending = true;
       }
@@ -214,7 +234,6 @@ function App() {
       }
     });
   }, []);
-
   let isLatestGame = getIsLatestGame();
   let gameDate = getGameDate();
   const prefersDarkMode = window.matchMedia(
@@ -497,7 +516,7 @@ function App() {
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isRevealing]);
-
+  console.log(userTurn, userNumber);
   return (
     <Div100vh>
       <div className='flex h-full flex-col mt-4'>
@@ -526,7 +545,7 @@ function App() {
               )}
               <div className=' flex bg-gray-300	w-3/4 h-8 rounded-md text-center items-center justify-center'>
                 <span className='text-red-600'>
-                  {userTurn == userNumber ? 'Your turn' : 'Not Your Turn'}
+                  {userTurn === userNumber ? 'Your turn' : 'Not Your Turn'}
                 </span>
               </div>
             </div>
@@ -539,14 +558,18 @@ function App() {
               currentRowClassName={currentRowClass}
             />
           </div>
-          <Keyboard
-            onChar={onChar}
-            onDelete={onDelete}
-            onEnter={onEnter}
-            solution={solution}
-            guesses={guesses}
-            isRevealing={isRevealing}
-          />
+          {userTurn === userNumber ? (
+            <Keyboard
+              onChar={onChar}
+              onDelete={onDelete}
+              onEnter={onEnter}
+              solution={solution}
+              guesses={guesses}
+              isRevealing={isRevealing}
+            />
+          ) : (
+            <></>
+          )}
           <InfoModal
             isOpen={isInfoModalOpen}
             handleClose={() => setIsInfoModalOpen(false)}
