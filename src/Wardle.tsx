@@ -336,7 +336,7 @@ function App() {
       console.log(roomNumber, [...guesses, currentGuess], userNumber);
       sendMessage({
         roomNum: roomNumber,
-        value: [...guesses, currentGuess], // 답변한 답변들 추가 [...지금까지쳤던단어들, 현재단어]
+        value: currentGuess, // 답변한 답변들 추가 [...지금까지쳤던단어들, 현재단어]
         userNum: userNumber,
       });
       if (currentGuess === solution) {
@@ -473,7 +473,9 @@ function App() {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userNum]);
-
+  useEffect(() => {
+    console.log('guesses ::: ' + guesses);
+  }, [guesses]);
   // socket
   useEffect(() => {
     //내가 만든 채팅 서버로부터의 메시지 수신 - pending관리
@@ -509,6 +511,11 @@ function App() {
     //내가 만든 채팅 서버로부터의 메시지 수신 - 답 관리
     socket.on('answer', (data) => {
       console.log('answer:::' + JSON.stringify(data));
+      if (data.result === 'success') {
+        setGuesses((prev) => {
+          return data.value;
+        });
+      }
       // 답을 맞췄을때
       if (
         data.result === 'success' &&
