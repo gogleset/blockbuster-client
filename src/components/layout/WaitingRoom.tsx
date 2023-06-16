@@ -31,6 +31,7 @@ const WaitingRoom = () => {
       stateView();
       navigate('/');
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isConnected, navigate]);
 
   // 승리수와 패배수 변경시
@@ -38,6 +39,7 @@ const WaitingRoom = () => {
     // 승률 state 변경
     setWinningRate(winingRate(win_count, lose_count));
     stateView();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [win_count, lose_count]);
 
   // 게임 시작 누를시

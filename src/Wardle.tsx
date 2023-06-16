@@ -45,12 +45,7 @@ import {
   // solutionGameDate as solGameDate,
   unicodeLength,
 } from './lib/words';
-import {
-  sendLoseCount,
-  sendRandomProblems,
-  sendRewardTicket,
-  sendWinCount,
-} from './util/send';
+import { sendLoseCount, sendRewardTicket, sendWinCount } from './util/send';
 import { getRandomDate } from './util/random';
 import { ClockIcon } from '@heroicons/react/outline';
 import { format } from 'date-fns';
@@ -75,7 +70,6 @@ function App() {
     lose_count,
     setRewardTicket,
     reward_ticket,
-    stateView,
   } = useContext(UserContext);
   const { address } = useAccount();
 
@@ -555,6 +549,7 @@ function App() {
       console.log('pending:::' + JSON.stringify(data));
       // 서버에 두명이 가득찼거나 서버 통신이 성공이라면
       if (data.result === 'success' && data.pending === false) {
+        // eslint-disable-next-line react-hooks/exhaustive-deps
         pending = false;
         // 정답 설정
         setSolution(data.answer.toUpperCase());
