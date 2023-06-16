@@ -78,12 +78,18 @@ function App() {
   const { address } = useAccount();
 
   // socket values
+  // 게임의 룸 넘버 확인 변수
   const [roomNumber, setRoomNumber] = useState('');
+  // 현재 참여한 게임 플레이어를 판별하기 위한 변수
   const [userNumber, setUserNumber] = useState(0);
   // userNumber를 업데이트 하기 위한 temp 변수
   const [userNum, setUserNum] = useState(0);
   let pending = true;
   const [userTurn, setUserTurn] = useState(1);
+  // winner를 판별하기 위한 temp 변수
+  const [winnerUser, setWinnerUser] = useState(Number);
+  // 게임의 이긴 상태를 판별하기 위한 boolean 변수
+  const [winning, setWinning] = useState(false);
 
   const [solution, setSolution] = useState('');
   const [solutionGameDate, setSolutionGameDate] = useState(new Date());
@@ -339,56 +345,56 @@ function App() {
         value: currentGuess, // 답변한 답변들 추가 [...지금까지쳤던단어들, 현재단어]
         userNum: userNumber,
       });
-      if (currentGuess === solution) {
-        Swal.fire({
-          title: 'You Win',
-          allowOutsideClick: false,
-          confirmButtonText: 'OK',
-        }).then(async (result) => {
-          // 1. 승수 카운트 1증가 , 2.보상 티켓 카운트 1 증가, 3.route 이동
-          if (result.isConfirmed === true) {
-            console.log('성공');
-            //1-1. 서버 통신
-            try {
-              const result = await sendWinCount(address);
-              //1-2. 서버 통신 실패할 경우
-              if (result.data.result === false) {
-                Swal.fire('failed');
-                navigate('/waiting');
-              } else {
-                // state 변경
-                setWinCount(win_count + 1);
-              }
-              // 그냥 서버 통신 자체가 실패할 경우
-            } catch (err) {
-              return Swal.fire(`${err}`).then((result) => {
-                if (result.isConfirmed) {
-                  navigate('/waiting');
-                } else {
-                  navigate('/waiting');
-                }
-              });
-            }
-            // 2.보상 티켓 카운트 1 증가 서버 연결
-            try {
-              //리워드 티켓 서버에 하나 등록
-              const result = await sendRewardTicket(address, 1, true);
-              // 서버 통신 실패할 경우
-              if (result.data.result === false) {
-                return Swal.fire('failed');
-              } else {
-                // state 변경
-                setRewardTicket(reward_ticket + 1);
-                Swal.fire(result.data.msg);
-                navigate('/waiting');
-              }
-              // 서버 실패시
-            } catch (err) {
-              return Swal.fire(`${err}`);
-            }
-          }
-        });
-      }
+      // if (currentGuess === solution) {
+      //   Swal.fire({
+      //     title: 'You Win',
+      //     allowOutsideClick: false,
+      //     confirmButtonText: 'OK',
+      //   }).then(async (result) => {
+      //     // 1. 승수 카운트 1증가 , 2.보상 티켓 카운트 1 증가, 3.route 이동
+      //     if (result.isConfirmed === true) {
+      //       console.log('성공');
+      //       //1-1. 서버 통신
+      //       try {
+      //         const result = await sendWinCount(address);
+      //         //1-2. 서버 통신 실패할 경우
+      //         if (result.data.result === false) {
+      //           Swal.fire('failed');
+      //           navigate('/waiting');
+      //         } else {
+      //           // state 변경
+      //           setWinCount(win_count + 1);
+      //         }
+      //         // 그냥 서버 통신 자체가 실패할 경우
+      //       } catch (err) {
+      //         return Swal.fire(`${err}`).then((result) => {
+      //           if (result.isConfirmed) {
+      //             navigate('/waiting');
+      //           } else {
+      //             navigate('/waiting');
+      //           }
+      //         });
+      //       }
+      //       // 2.보상 티켓 카운트 1 증가 서버 연결
+      //       try {
+      //         //리워드 티켓 서버에 하나 등록
+      //         const result = await sendRewardTicket(address, 1, true);
+      //         // 서버 통신 실패할 경우
+      //         if (result.data.result === false) {
+      //           return Swal.fire('failed');
+      //         } else {
+      //           // state 변경
+      //           setRewardTicket(reward_ticket + 1);
+      //           Swal.fire(result.data.msg);
+      //           navigate('/waiting');
+      //         }
+      //         // 서버 실패시
+      //       } catch (err) {
+      //         return Swal.fire(`${err}`);
+      //       }
+      //     }
+      //   });
+      // }
     }
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -474,12 +480,19 @@ function App() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userNum]);
   useEffect(() => {
-    console.log('guesses ::: ' + guesses);
-  }, [guesses]);
+    console.log('winnerUser ::: ' + winnerUser);
+    if (winning === true) {
+      if (winnerUser === userNumber) {
+        Swal.fire('You Win!');
+      } else {
+        Swal.fire('You Lose!');
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [winning]);
   // socket
   useEffect(() => {
     //내가 만든 채팅 서버로부터의 메시지 수신 - pending관리
-
     socket.on('insert_room', (data) => {
       const result = data;
       if (result.result === 'success') {
@@ -517,20 +530,12 @@ function App() {
         });
       }
       // 답을 맞췄을때
-      if (
-        data.result === 'success' &&
-        data.gameWin === true &&
-        data.userNum === userNumber
-      ) {
+      if (data.result === 'success' && data.gameWin === true) {
         // 보상 주어짐
-        alert('you win!');
-        socket.emit('leaveRoom', roomNumber);
-      } else if (
-        data.result === 'success' &&
-        data.gameWin === true &&
-        data.userNum !== userNumber
-      ) {
-        alert('you lose..');
+        // 유저 판별
+        setWinnerUser(data.userNum);
+        // 이긴지 아닌지 판별
+        setWinning(data.gameWin);
         socket.emit('leaveRoom', roomNumber);
       }
     });
