@@ -46,6 +46,7 @@ import {
   unicodeLength,
 } from './lib/words';
 import {
+  sendLoseCount,
   sendRandomProblems,
   sendRewardTicket,
   sendWinCount,
@@ -71,6 +72,7 @@ function App() {
     win_count,
     setLoseCount,
     setWinCount,
+    lose_count,
     setRewardTicket,
     reward_ticket,
     stateView,
@@ -346,54 +348,7 @@ function App() {
         userNum: userNumber,
       });
       // if (currentGuess === solution) {
-      //   Swal.fire({
-      //     title: 'You Win',
-      //     allowOutsideClick: false,
-      //     confirmButtonText: 'OK',
-      //   }).then(async (result) => {
-      //     // 1. 승수 카운트 1증가 , 2.보상 티켓 카운트 1 증가, 3.route 이동
-      //     if (result.isConfirmed === true) {
-      //       console.log('성공');
-      //       //1-1. 서버 통신
-      //       try {
-      //         const result = await sendWinCount(address);
-      //         //1-2. 서버 통신 실패할 경우
-      //         if (result.data.result === false) {
-      //           Swal.fire('failed');
-      //           navigate('/waiting');
-      //         } else {
-      //           // state 변경
-      //           setWinCount(win_count + 1);
-      //         }
-      //         // 그냥 서버 통신 자체가 실패할 경우
-      //       } catch (err) {
-      //         return Swal.fire(`${err}`).then((result) => {
-      //           if (result.isConfirmed) {
-      //             navigate('/waiting');
-      //           } else {
-      //             navigate('/waiting');
-      //           }
-      //         });
-      //       }
-      //       // 2.보상 티켓 카운트 1 증가 서버 연결
-      //       try {
-      //         //리워드 티켓 서버에 하나 등록
-      //         const result = await sendRewardTicket(address, 1, true);
-      //         // 서버 통신 실패할 경우
-      //         if (result.data.result === false) {
-      //           return Swal.fire('failed');
-      //         } else {
-      //           // state 변경
-      //           setRewardTicket(reward_ticket + 1);
-      //           Swal.fire(result.data.msg);
-      //           navigate('/waiting');
-      //         }
-      //         // 서버 실패시
-      //       } catch (err) {
-      //         return Swal.fire(`${err}`);
-      //       }
-      //     }
-      //   });
+      //
       // }
     }
 
@@ -481,11 +436,97 @@ function App() {
   }, [userNum]);
   useEffect(() => {
     console.log('winnerUser ::: ' + winnerUser);
+    //이기면
     if (winning === true) {
+      // 만약 그 유저가 맞다면 승
       if (winnerUser === userNumber) {
-        Swal.fire('You Win!');
+        Swal.fire({
+          title: 'You Win',
+          allowOutsideClick: false,
+          confirmButtonText: 'OK',
+        }).then(async (result) => {
+          // 1. 승수 카운트 1증가 , 2.보상 티켓 카운트 1 증가, 3.route 이동
+          if (result.isConfirmed === true) {
+            console.log('성공');
+            //1-1. 서버 통신
+            try {
+              const result = await sendWinCount(address);
+              //1-2. 서버 통신 실패할 경우
+              if (result.data.result === false) {
+                Swal.fire('server failed');
+                navigate('/waiting');
+              } else {
+                // state 변경
+                setWinCount(win_count + 1);
+              }
+              // 그냥 서버 통신 자체가 실패할 경우
+            } catch (err) {
+              return Swal.fire(`${err}`).then((result) => {
+                if (result.isConfirmed) {
+                  navigate('/waiting');
+                } else {
+                  navigate('/waiting');
+                }
+              });
+            }
+            // 2.보상 티켓 카운트 1 증가 서버 연결
+            try {
+              //리워드 티켓 서버에 하나 등록
+              const result = await sendRewardTicket(address, 1, true);
+              // 서버 통신 실패할 경우
+              if (result.data.result === false) {
+                Swal.fire('server connection failed');
+                navigate('/waiting');
+              } else {
+                // state 변경
+                setRewardTicket(reward_ticket + 1);
+                Swal.fire(result.data.msg);
+                navigate('/waiting');
+              }
+              // 서버 실패시
+            } catch (err) {
+              return Swal.fire(`${err}`).then((result) => {
+                if (result.isConfirmed) {
+                  navigate('/waiting');
+                } else {
+                  navigate('/waiting');
+                }
+              });
+            }
+          }
+        });
+        // 아니라면
       } else {
-        Swal.fire('You Lose!');
+        Swal.fire({
+          title: 'You Lose...',
+          allowOutsideClick: false,
+          confirmButtonText: 'OK',
+        }).then(async (result) => {
+          // 1. 패배수 카운트 1증가 , 2.보상 티켓 카운트 1 증가, 3.route 이동
+          if (result.isConfirmed === true) {
+            try {
+              const result = await sendLoseCount(address);
+              //1-2. 서버 통신 실패할 경우
+              if (result.data.result === false) {
+                Swal.fire('server connection failed');
+                navigate('/waiting');
+              } else {
+                // state 변경
+                setLoseCount(lose_count + 1);
+                navigate('/waiting');
+              }
+              // 그냥 서버 통신 자체가 실패할 경우
+            } catch (err) {
+              return Swal.fire(`${err}`).then((result) => {
+                if (result.isConfirmed) {
+                  navigate('/waiting');
+                } else {
+                  navigate('/waiting');
+                }
+              });
+            }
+          }
+        });
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -578,7 +619,7 @@ function App() {
           <div className='flex grow flex-col  pb-6 short:pb-2'>
             <div className='flex flex-col justify-center items-center m-10'>
               {solution !== '' && (
-                <div className='mb-1'>{!isRevealing && <Timer />}</div>
+                <div className='mb-1'>{!isRevealing ? <Timer /> : <></>}</div>
               )}
               <div className=' flex bg-gray-300	w-3/4 h-8 rounded-md text-center items-center justify-center'>
                 <span className='text-red-600'>

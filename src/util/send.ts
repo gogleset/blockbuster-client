@@ -183,7 +183,7 @@ export const sendWinCount: sendWin = async (wallet): Promise<object> => {
   }
 };
 
-//승리 카운트 1 증가
+//패배 카운트 1 증가
 export const sendLoseCount: sendWin = async (wallet): Promise<object> => {
   try {
     const result = await axios.put(
